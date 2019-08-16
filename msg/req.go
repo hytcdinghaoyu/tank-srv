@@ -1,15 +1,23 @@
 package msg
 
+import (
+	"github.com/name5566/leaf/network/json"
+)
+
+var Processor = json.NewProcessor()
+
 func init() {
-	// 这里我们注册了一个 JSON 消息 Hello
 	Processor.Register(&Login{})
+	Processor.Register(&JoinRoom{})
 }
 
+//Login message
 type Login struct {
 	Name string
 	UID  int
 }
 
-type JoinRoomReq struct {
+//JoinRoom message
+type JoinRoom struct {
 	UID int
 }
