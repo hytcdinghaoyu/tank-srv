@@ -1,23 +1,30 @@
 package internal
 
 import (
-	"github.com/name5566/leaf/module"
-	"tank-srv/base"
-)
+	"tank-srv/conf"
+	"tank-srv/modules/login"
+	"tank-srv/msg"
 
-var (
-	skeleton = base.NewSkeleton()
-	ChanRPC  = skeleton.ChanRPCServer
+	"github.com/name5566/leaf/gate"
 )
 
 type Module struct {
-	*module.Skeleton
+	*gate.Gate
 }
 
 func (m *Module) OnInit() {
-	m.Skeleton = skeleton
-}
-
-func (m *Module) OnDestroy() {
-
+	m.Gate = &gate.Gate{
+		MaxConnNum:      conf.Server.MaxConnNum,
+		PendingWriteNum: conf.PendingWriteNum,
+		MaxMsgLen:       conf.MaxMsgLen,
+		WSAddr:          conf.Server.WSAddr,
+		HTTPTimeout:     conf.HTTPTimeout,
+		CertFile:        conf.Server.CertFile,
+		KeyFile:         conf.Server.KeyFile,
+		TCPAddr:         conf.Server.TCPAddr,
+		LenMsgLen:       conf.LenMsgLen,
+		LittleEndian:    conf.LittleEndian,
+		Processor:       msg.Processor,
+		AgentChanRPC:    login.ChanRPC,
+	}
 }

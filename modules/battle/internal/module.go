@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"fmt"
 	"log"
 	"tank-srv/base"
 	"time"
@@ -23,26 +22,26 @@ func (m *Module) OnInit() {
 	m.Skeleton = skeleton
 }
 
-func (m *Module) Run(closeSig chan bool) {
-	defer ticker.Stop()
-	preTime := time.Now().UnixNano()
-	for {
-		select {
-		case <-ticker.C:
-			{
-				nowTime := time.Now().UnixNano()
-				diff := float32(nowTime - preTime)
-				fmt.Println("diff =", diff)
-			}
-		case close := <-closeSig:
-			if close {
-				fmt.Println("Ticker Stopped!")
-				return
-			}
+// func (m *Module) Run(closeSig chan bool) {
+// 	defer ticker.Stop()
+// 	preTime := time.Now().UnixNano()
+// 	for {
+// 		select {
+// 		case <-ticker.C:
+// 			{
+// 				nowTime := time.Now().UnixNano()
+// 				diff := float32(nowTime - preTime)
+// 				fmt.Println("diff =", diff)
+// 			}
+// 		case close := <-closeSig:
+// 			if close {
+// 				fmt.Println("Ticker Stopped!")
+// 				return
+// 			}
 
-		}
-	}
-}
+// 		}
+// 	}
+// }
 
 func (m *Module) OnDestroy() {
 	log.Println("destroy")
