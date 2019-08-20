@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	OnlinePlayerMap = make(map[gate.Agent]Player)
+	OnlinePlayerMap = make(map[gate.Agent]*Player)
 )
 
 // MaxPlayerNum defines single server max user num

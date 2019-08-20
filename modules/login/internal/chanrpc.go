@@ -19,7 +19,16 @@ func rpcNewAgent(args []interface{}) {
 
 func rpcCloseAgent(args []interface{}) {
 	a := args[0].(gate.Agent)
+
+	var player = entity.OnlinePlayerMap[a]
+
+	//如果正在房间，先离开房间
+	if player.RoomID != "" {
+		entity.RoomsMap[player.RoomID].LeaveRoom(a)
+	}
+
 	delete(entity.OnlinePlayerMap, a)
+
 	log.Debug("agent disconneted, server player online num: %v", len(entity.OnlinePlayerMap))
 
 }

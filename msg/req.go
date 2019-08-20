@@ -11,6 +11,7 @@ func init() {
 	Processor.Register(&LoginRsp{})
 
 	Processor.Register(&JoinRoom{})
+	Processor.Register(&JoinRoomRsp{})
 }
 
 //Login message
@@ -23,4 +24,9 @@ type Login struct {
 //JoinRoom message
 type JoinRoom struct {
 	UID int
+}
+
+type LeaveRoom struct {
+	RoomID string
+	UID    int
 }

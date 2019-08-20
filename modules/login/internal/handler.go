@@ -12,8 +12,9 @@ import (
 )
 
 func init() {
-	// 向当前模块（game 模块）注册 Hello 消息的消息处理函数 handleHello
 	handler(&msg.Login{}, handleLogin)
+	handler(&msg.JoinRoom{}, handleJoinRoom)
+	handler(&msg.LeaveRoom{}, handleJoinRoom)
 }
 
 func handler(m interface{}, h interface{}) {
@@ -33,7 +34,8 @@ func handleLogin(args []interface{}) {
 	}
 
 	//加入游戏大厅
-	entity.OnlinePlayerMap[a] = entity.Player{UID: m.UID}
+	entity.OnlinePlayerMap[a] = &entity.Player{UID: m.UID, Name: m.Name}
+
 	log.Debug("server player online num: %v", len(entity.OnlinePlayerMap))
 
 	a.WriteMsg(&msg.LoginRsp{
@@ -42,24 +44,61 @@ func handleLogin(args []interface{}) {
 }
 
 func handleJoinRoom(args []interface{}) {
-	m := args[0].(*msg.JoinRoom)
+	// m := args[0].(*msg.JoinRoom)
 	a := args[1].(gate.Agent)
 
-	_, ok := entity.OnlinePlayerMap[a]
+	var p *entity.Player
+	var ret msg.JoinRoomRsp
+	p, ok := entity.OnlinePlayerMap[a]
 	if !ok {
-		a.WriteMsg(&msg.JoinRoomRsp{
-			UID: m.UID,
-			Ret: constants.UserNotLogin,
-		})
+		ret = msg.JoinRoomRsp{
+			Name: p.Name,
+			Ret:  constants.UserNotLogin,
+		}
+		a.WriteMsg(&ret)
 	}
 
-	// var found = false
-	// var roomID = ""
+	var found = false
+	var roomID = ""
 
-	for roomID, room := range entity.RoomsMap {
+	for _, room := range entity.RoomsMap {
 		if len(room.Players) < entity.RoomMaxPlayerNum {
-			room.JoinRoom(roomID, a)
+			roomID, err := room.JoinRoom(a)
+			if err == nil {
+				ret = msg.JoinRoomRsp{Ret: 0, RoomID: roomID, Name: p.Name}
+				room.Broadcast(&ret)
+			} else {
+				ret = msg.JoinRoomRsp{Ret: -1, Msg: err.Error()}
+				a.WriteMsg(&ret)
+			}
+
+			found = true
+			break
 		}
 	}
+
+	if !found {
+		roomID, _ = entity.CreateRoom(a)
+		ret = msg.JoinRoomRsp{Ret: 0, RoomID: roomID, Name: p.Name}
+		a.WriteMsg(&ret)
+	}
+
+}
+
+func handleLeaveRoom(args []interface{}) {
+	m := args[0].(*msg.LeaveRoom)
+	a := args[1].(gate.Agent)
+
+	roomID := m.RoomID
+	var room, ok = entity.RoomsMap[roomID]
+	if !ok {
+		a.WriteMsg(&msg.LeaveRoomRsp{Ret: -1, Msg: "room not found"})
+	}
+
+	if err := room.LeaveRoom(a); err != nil {
+		a.WriteMsg(&msg.LeaveRoomRsp{Ret: -1, Msg: err.Error()})
+	}
+
+	a.WriteMsg(&msg.LeaveRoomRsp{Ret: 1})
 
 }

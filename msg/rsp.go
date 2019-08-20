@@ -7,7 +7,13 @@ type LoginRsp struct {
 }
 
 type JoinRoomRsp struct {
-	Ret      int
-	UID      int
-	BattleID int
+	Ret    int
+	Name   string
+	RoomID string
+	Msg    string
+}
+
+type LeaveRoomRsp struct {
+	Ret int
+	Msg string
 }
