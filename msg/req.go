@@ -12,6 +12,9 @@ func init() {
 
 	Processor.Register(&JoinRoom{})
 	Processor.Register(&JoinRoomRsp{})
+
+	Processor.Register(&LeaveRoom{})
+	Processor.Register(&LeaveRoomRsp{})
 }
 
 //Login message
@@ -29,4 +32,12 @@ type JoinRoom struct {
 type LeaveRoom struct {
 	RoomID string
 	UID    int
+}
+
+type Battle struct {
+	UID      int
+	MoveX    float32
+	MoveY    float32
+	Rotation float32
+	SkillID  int
 }

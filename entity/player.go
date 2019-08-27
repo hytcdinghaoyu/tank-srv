@@ -9,5 +9,5 @@ type Player struct {
 	LoginTime int
 	RoomID    string
 	Name      string
-	gate.Agent
+	a         gate.Agent
 }

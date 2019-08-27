@@ -22,24 +22,35 @@ const (
 type Room struct {
 	RoomID  string
 	State   int
-	Players map[gate.Agent]Player
+	Players map[gate.Agent]*BattleUser
+	Balls   []Ball
 }
 
-func CreateRoom(a gate.Agent) (string, error) {
+func CreateRoom(p *Player) (string, error) {
 	var roomID = ksuid.New().String()
 
 	RoomsMap[roomID] = &Room{
 		RoomID:  roomID,
-		Players: make(map[gate.Agent]Player),
+		Players: make(map[gate.Agent]*BattleUser),
 	}
-	RoomsMap[roomID].Players[a] = Player{RoomID: roomID}
+
+	//初始化角色战斗信息
+	RoomsMap[roomID].Players[p.a] = &BattleUser{
+		Player:   *p,
+		TopSpeed: 5,
+		Mass:     1,
+		AccPower: 20,
+		Size:     1,
+		Life:     50,
+		MaxLife:  50,
+	}
 
 	log.Debug("created a new room: %s, total room num: %v", roomID, len(RoomsMap))
 
 	return roomID, nil
 }
 
-func (r *Room) JoinRoom(a gate.Agent) (string, error) {
+func (r *Room) JoinRoom(p *Player) (string, error) {
 	//检查房间是否存在
 	var _, ok = RoomsMap[r.RoomID]
 	if !ok {
@@ -52,25 +63,35 @@ func (r *Room) JoinRoom(a gate.Agent) (string, error) {
 	}
 
 	//是否已经加入，不能重复加入
-	if _, ok := r.Players[a]; ok {
+	if _, ok := r.Players[p.a]; ok {
 		return "", errAllReadyInRoom
 	}
 
-	r.Players[a] = Player{RoomID: r.RoomID}
+	//初始化战斗信息
+	r.Players[p.a] = &BattleUser{
+		Player:   *p,
+		TopSpeed: 5,
+		Mass:     1,
+		AccPower: 20,
+		Size:     1,
+		Life:     50,
+		MaxLife:  50,
+	}
+
 	//设置大厅玩家的房间号
-	OnlinePlayerMap[a].RoomID = r.RoomID
+	OnlinePlayerMap[p.a].RoomID = r.RoomID
 
 	return r.RoomID, nil
 }
 
-func (r *Room) LeaveRoom(a gate.Agent) error {
+func (r *Room) LeaveRoom(p *Player) error {
 	var _, ok = RoomsMap[r.RoomID]
 	if !ok {
 		return errRoomNotFound
 	}
 
-	delete(r.Players, a)
-	OnlinePlayerMap[a].RoomID = ""
+	delete(r.Players, p.a)
+	OnlinePlayerMap[p.a].RoomID = ""
 
 	//全部人离开后，删除房间
 	if len(r.Players) == 0 {

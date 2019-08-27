@@ -1,6 +1,7 @@
 package gate
 
 import (
+	"tank-srv/modules/battle"
 	"tank-srv/modules/login"
 	"tank-srv/msg"
 )
@@ -10,5 +11,7 @@ func init() {
 	msg.Processor.SetRouter(&msg.Login{}, login.ChanRPC)
 	msg.Processor.SetRouter(&msg.JoinRoom{}, login.ChanRPC)
 	msg.Processor.SetRouter(&msg.LeaveRoom{}, login.ChanRPC)
+
+	msg.Processor.SetRouter(&msg.Battle{}, battle.ChanRPC)
 
 }

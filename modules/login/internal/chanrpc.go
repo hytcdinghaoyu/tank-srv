@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"tank-srv/entity"
 
 	"github.com/name5566/leaf/gate"
@@ -14,6 +15,7 @@ func init() {
 
 func rpcNewAgent(args []interface{}) {
 	a := args[0].(gate.Agent)
+	fmt.Println(a)
 	_ = a
 }
 
@@ -24,7 +26,7 @@ func rpcCloseAgent(args []interface{}) {
 
 	//如果正在房间，先离开房间
 	if player.RoomID != "" {
-		entity.RoomsMap[player.RoomID].LeaveRoom(a)
+		entity.RoomsMap[player.RoomID].LeaveRoom(player)
 	}
 
 	delete(entity.OnlinePlayerMap, a)

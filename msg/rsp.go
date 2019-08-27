@@ -1,5 +1,7 @@
 package msg
 
+import "tank-srv/entity"
+
 // LoginRsp Login Response
 type LoginRsp struct {
 	Ret int
@@ -16,4 +18,11 @@ type JoinRoomRsp struct {
 type LeaveRoomRsp struct {
 	Ret int
 	Msg string
+}
+
+type BattleRsp struct {
+	Ret     int
+	RunTime int
+	Users   []entity.BattleUser
+	Balls   []entity.Ball
 }

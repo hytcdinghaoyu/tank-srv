@@ -63,7 +63,7 @@ func handleJoinRoom(args []interface{}) {
 
 	for _, room := range entity.RoomsMap {
 		if len(room.Players) < entity.RoomMaxPlayerNum {
-			roomID, err := room.JoinRoom(a)
+			roomID, err := room.JoinRoom(p)
 			if err == nil {
 				ret = msg.JoinRoomRsp{Ret: 0, RoomID: roomID, Name: p.Name}
 				room.Broadcast(&ret)
@@ -78,7 +78,7 @@ func handleJoinRoom(args []interface{}) {
 	}
 
 	if !found {
-		roomID, _ = entity.CreateRoom(a)
+		roomID, _ = entity.CreateRoom(p)
 		ret = msg.JoinRoomRsp{Ret: 0, RoomID: roomID, Name: p.Name}
 		a.WriteMsg(&ret)
 	}
@@ -89,13 +89,23 @@ func handleLeaveRoom(args []interface{}) {
 	m := args[0].(*msg.LeaveRoom)
 	a := args[1].(gate.Agent)
 
+	var p *entity.Player
+	var ret msg.LeaveRoomRsp
+	p, ok := entity.OnlinePlayerMap[a]
+	if !ok {
+		ret = msg.LeaveRoomRsp{
+			Ret: constants.UserNotLogin,
+		}
+		a.WriteMsg(&ret)
+	}
+
 	roomID := m.RoomID
-	var room, ok = entity.RoomsMap[roomID]
+	room, ok := entity.RoomsMap[roomID]
 	if !ok {
 		a.WriteMsg(&msg.LeaveRoomRsp{Ret: -1, Msg: "room not found"})
 	}
 
-	if err := room.LeaveRoom(a); err != nil {
+	if err := room.LeaveRoom(p); err != nil {
 		a.WriteMsg(&msg.LeaveRoomRsp{Ret: -1, Msg: err.Error()})
 	}
 
