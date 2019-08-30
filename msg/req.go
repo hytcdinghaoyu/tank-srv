@@ -15,6 +15,9 @@ func init() {
 
 	Processor.Register(&LeaveRoom{})
 	Processor.Register(&LeaveRoomRsp{})
+
+	Processor.Register(&Battle{})
+	Processor.Register(&BattleRsp{})
 }
 
 //Login message
