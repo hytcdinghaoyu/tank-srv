@@ -1,12 +1,17 @@
 package internal
 
 import (
+	"fmt"
 	"tank-srv/conf"
 	"tank-srv/modules/login"
 	"tank-srv/msg"
 
+	"time"
+
 	"github.com/name5566/leaf/gate"
 )
+
+var ticker = time.NewTicker(1000 * time.Millisecond)
 
 type Module struct {
 	*gate.Gate
@@ -26,5 +31,26 @@ func (m *Module) OnInit() {
 		LittleEndian:    conf.LittleEndian,
 		Processor:       msg.Processor,
 		AgentChanRPC:    login.ChanRPC,
+	}
+}
+
+func (m *Module) Run(closeSig chan bool) {
+	defer ticker.Stop()
+	preTime := time.Now().UnixNano()
+	for {
+		select {
+		case <-ticker.C:
+			{
+				nowTime := time.Now().UnixNano()
+				diff := float32(nowTime - preTime)
+				fmt.Println("diff =", diff)
+			}
+		case close := <-closeSig:
+			if close {
+				fmt.Println("Ticker Stopped!")
+				return
+			}
+
+		}
 	}
 }
