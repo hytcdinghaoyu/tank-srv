@@ -1,24 +1,21 @@
 package internal
 
 import (
-	"fmt"
 	"tank-srv/conf"
 	"tank-srv/modules/login"
 	"tank-srv/msg"
 
-	"time"
-
-	"github.com/name5566/leaf/gate"
+	"tank-srv/net"
 )
 
-var ticker = time.NewTicker(1000 * time.Millisecond)
+// var ticker = time.NewTicker(1000 * time.Millisecond)
 
 type Module struct {
-	*gate.Gate
+	*net.Gate
 }
 
 func (m *Module) OnInit() {
-	m.Gate = &gate.Gate{
+	m.Gate = &net.Gate{
 		MaxConnNum:      conf.Server.MaxConnNum,
 		PendingWriteNum: conf.PendingWriteNum,
 		MaxMsgLen:       conf.MaxMsgLen,
@@ -34,23 +31,23 @@ func (m *Module) OnInit() {
 	}
 }
 
-func (m *Module) Run(closeSig chan bool) {
-	defer ticker.Stop()
-	preTime := time.Now().UnixNano()
-	for {
-		select {
-		case <-ticker.C:
-			{
-				nowTime := time.Now().UnixNano()
-				diff := float32(nowTime - preTime)
-				fmt.Println("diff =", diff)
-			}
-		case close := <-closeSig:
-			if close {
-				fmt.Println("Ticker Stopped!")
-				return
-			}
+// func (m *Module) Run(closeSig chan bool) {
+// 	defer ticker.Stop()
+// 	preTime := time.Now().UnixNano()
+// 	for {
+// 		select {
+// 		case <-ticker.C:
+// 			{
+// 				nowTime := time.Now().UnixNano()
+// 				diff := float32(nowTime - preTime)
+// 				fmt.Println("diff =", diff)
+// 			}
+// 		case close := <-closeSig:
+// 			if close {
+// 				fmt.Println("Ticker Stopped!")
+// 				return
+// 			}
 
-		}
-	}
-}
+// 		}
+// 	}
+// }

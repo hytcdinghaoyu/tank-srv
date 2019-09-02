@@ -1,20 +1,23 @@
 package net
 
 import (
+	"crypto/sha1"
 	"net"
 	"sync"
 	"time"
 
 	"github.com/name5566/leaf/log"
 	"github.com/name5566/leaf/network"
+	"github.com/xtaci/kcp-go"
+	"golang.org/x/crypto/pbkdf2"
 )
 
 type KCPServer struct {
 	Addr            string
 	MaxConnNum      int
 	PendingWriteNum int
-	NewAgent        func(*TCPConn) network.Agent
-	ln              net.Listener
+	NewAgent        func(*KCPConn) network.Agent
+	ln              *kcp.Listener
 	conns           ConnSet
 	mutexConns      sync.Mutex
 	wgLn            sync.WaitGroup
@@ -34,7 +37,9 @@ func (server *KCPServer) Start() {
 }
 
 func (server *KCPServer) init() {
-	ln, err := net.Listen("tcp", server.Addr)
+	key := pbkdf2.Key([]byte("demo pass"), []byte("demo salt"), 1024, 32, sha1.New)
+	block, _ := kcp.NewAESBlockCrypt(key)
+	ln, err := kcp.ListenWithOptions(server.Addr, block, 10, 3)
 	if err != nil {
 		log.Fatal("%v", err)
 	}
@@ -67,7 +72,7 @@ func (server *KCPServer) run() {
 
 	var tempDelay time.Duration
 	for {
-		conn, err := server.ln.Accept()
+		conn, err := server.ln.AcceptKCP()
 		if err != nil {
 			if ne, ok := err.(net.Error); ok && ne.Temporary() {
 				if tempDelay == 0 {
