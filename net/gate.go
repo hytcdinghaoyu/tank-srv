@@ -31,7 +31,7 @@ type Gate struct {
 }
 
 func (gate *Gate) Run(closeSig chan bool) {
-	fmt.Println("running my gate server")
+	log.Debug("gate server starting")
 	var wsServer *network.WSServer
 	if gate.WSAddr != "" {
 		wsServer = new(network.WSServer)
@@ -70,11 +70,11 @@ func (gate *Gate) Run(closeSig chan bool) {
 	}
 
 	if wsServer != nil {
-		fmt.Println("starting ws server")
+		log.Debug("starting ws server addr: %s", gate.WSAddr)
 		wsServer.Start()
 	}
 	if kcpServer != nil {
-		fmt.Println("starting kcp server")
+		log.Debug("starting kcp server addr: %s", gate.TCPAddr)
 		kcpServer.Start()
 	}
 	<-closeSig

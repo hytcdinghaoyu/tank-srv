@@ -103,7 +103,7 @@ func (server *KCPServer) run() {
 
 		server.wgConns.Add(1)
 
-		tcpConn := newTCPConn(conn, server.PendingWriteNum, server.msgParser)
+		tcpConn := newKCPConn(conn, server.PendingWriteNum, server.msgParser)
 		agent := server.NewAgent(tcpConn)
 		go func() {
 			agent.Run()

@@ -17,14 +17,14 @@ type KCPConn struct {
 	msgParser *MsgParser
 }
 
-func newTCPConn(conn net.Conn, pendingWriteNum int, msgParser *MsgParser) *KCPConn {
-	tcpConn := new(KCPConn)
-	tcpConn.conn = conn
-	tcpConn.writeChan = make(chan []byte, pendingWriteNum)
-	tcpConn.msgParser = msgParser
+func newKCPConn(conn net.Conn, pendingWriteNum int, msgParser *MsgParser) *KCPConn {
+	kcpConn := new(KCPConn)
+	kcpConn.conn = conn
+	kcpConn.writeChan = make(chan []byte, pendingWriteNum)
+	kcpConn.msgParser = msgParser
 
 	go func() {
-		for b := range tcpConn.writeChan {
+		for b := range kcpConn.writeChan {
 			if b == nil {
 				break
 			}
@@ -36,79 +36,79 @@ func newTCPConn(conn net.Conn, pendingWriteNum int, msgParser *MsgParser) *KCPCo
 		}
 
 		conn.Close()
-		tcpConn.Lock()
-		tcpConn.closeFlag = true
-		tcpConn.Unlock()
+		kcpConn.Lock()
+		kcpConn.closeFlag = true
+		kcpConn.Unlock()
 	}()
 
-	return tcpConn
+	return kcpConn
 }
 
-func (tcpConn *KCPConn) doDestroy() {
-	tcpConn.conn.(*net.TCPConn).SetLinger(0)
-	tcpConn.conn.Close()
+func (kcpConn *KCPConn) doDestroy() {
+	kcpConn.conn.(*net.TCPConn).SetLinger(0)
+	kcpConn.conn.Close()
 
-	if !tcpConn.closeFlag {
-		close(tcpConn.writeChan)
-		tcpConn.closeFlag = true
+	if !kcpConn.closeFlag {
+		close(kcpConn.writeChan)
+		kcpConn.closeFlag = true
 	}
 }
 
-func (tcpConn *KCPConn) Destroy() {
-	tcpConn.Lock()
-	defer tcpConn.Unlock()
+func (kcpConn *KCPConn) Destroy() {
+	kcpConn.Lock()
+	defer kcpConn.Unlock()
 
-	tcpConn.doDestroy()
+	kcpConn.doDestroy()
 }
 
-func (tcpConn *KCPConn) Close() {
-	tcpConn.Lock()
-	defer tcpConn.Unlock()
-	if tcpConn.closeFlag {
+func (kcpConn *KCPConn) Close() {
+	kcpConn.Lock()
+	defer kcpConn.Unlock()
+	if kcpConn.closeFlag {
 		return
 	}
 
-	tcpConn.doWrite(nil)
-	tcpConn.closeFlag = true
+	kcpConn.doWrite(nil)
+	kcpConn.closeFlag = true
 }
 
-func (tcpConn *KCPConn) doWrite(b []byte) {
-	if len(tcpConn.writeChan) == cap(tcpConn.writeChan) {
+func (kcpConn *KCPConn) doWrite(b []byte) {
+	if len(kcpConn.writeChan) == cap(kcpConn.writeChan) {
 		log.Debug("close conn: channel full")
-		tcpConn.doDestroy()
+		kcpConn.doDestroy()
 		return
 	}
 
-	tcpConn.writeChan <- b
+	kcpConn.writeChan <- b
 }
 
 // b must not be modified by the others goroutines
-func (tcpConn *KCPConn) Write(b []byte) {
-	tcpConn.Lock()
-	defer tcpConn.Unlock()
-	if tcpConn.closeFlag || b == nil {
+func (kcpConn *KCPConn) Write(b []byte) {
+	kcpConn.Lock()
+	defer kcpConn.Unlock()
+	if kcpConn.closeFlag || b == nil {
 		return
 	}
 
-	tcpConn.doWrite(b)
+	kcpConn.doWrite(b)
 }
 
-func (tcpConn *KCPConn) Read(b []byte) (int, error) {
-	return tcpConn.conn.Read(b)
+func (kcpConn *KCPConn) Read(b []byte) (int, error) {
+	return kcpConn.conn.Read(b)
 }
 
-func (tcpConn *KCPConn) LocalAddr() net.Addr {
-	return tcpConn.conn.LocalAddr()
+func (kcpConn *KCPConn) LocalAddr() net.Addr {
+	return kcpConn.conn.LocalAddr()
 }
 
-func (tcpConn *KCPConn) RemoteAddr() net.Addr {
-	return tcpConn.conn.RemoteAddr()
+func (kcpConn *KCPConn) RemoteAddr() net.Addr {
+	return kcpConn.conn.RemoteAddr()
 }
 
-func (tcpConn *KCPConn) ReadMsg() ([]byte, error) {
-	return tcpConn.msgParser.Read(tcpConn)
+func (kcpConn *KCPConn) ReadMsg() ([]byte, error) {
+	return kcpConn.msgParser.Read(kcpConn)
 }
 
-func (tcpConn *KCPConn) WriteMsg(args ...[]byte) error {
-	return tcpConn.msgParser.Write(tcpConn, args...)
+func (kcpConn *KCPConn) WriteMsg(args ...[]byte) error {
+	return kcpConn.msgParser.Write(kcpConn, args...)
 }
